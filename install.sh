@@ -14,9 +14,12 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m'
 
-info()  { printf "${GREEN}[info]${NC}  %s\n" "$1"; }
-warn()  { printf "${YELLOW}[warn]${NC}  %s\n" "$1"; }
-error() { printf "${RED}[error]${NC} %s\n" "$1"; exit 1; }
+info() { printf "${GREEN}[info]${NC}  %s\n" "$1" >&2; }
+warn() { printf "${YELLOW}[warn]${NC}  %s\n" "$1" >&2; }
+error() {
+  printf "${RED}[error]${NC} %s\n" "$1" >&2
+  exit 1
+}
 
 # Verificar dependências
 need_cmd() {
@@ -38,15 +41,15 @@ detect_platform() {
   arch=$(uname -m)
 
   case "$os" in
-    Linux*)   os_name="linux" ;;
-    Darwin*)  os_name="macos" ;;
-    *)        error "Sistema operacional não suportado: $os" ;;
+  Linux*) os_name="linux" ;;
+  Darwin*) os_name="macos" ;;
+  *) error "Sistema operacional não suportado: $os" ;;
   esac
 
   case "$arch" in
-    x86_64|amd64)   arch_name="x64" ;;
-    aarch64|arm64)   arch_name="arm64" ;;
-    *)               error "Arquitetura não suportada: $arch" ;;
+  x86_64 | amd64) arch_name="x64" ;;
+  aarch64 | arm64) arch_name="arm64" ;;
+  *) error "Arquitetura não suportada: $arch" ;;
   esac
 
   platform="${os_name}-${arch_name}"
@@ -56,8 +59,8 @@ detect_platform() {
 # Montar nome do arquivo
 get_filename() {
   case "$os_name" in
-    macos)  echo "algori-${platform}" ;;
-    linux)  echo "algori-${platform}" ;;
+  macos) echo "algori-${platform}" ;;
+  linux) echo "algori-${platform}" ;;
   esac
 }
 

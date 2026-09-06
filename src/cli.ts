@@ -95,16 +95,19 @@ function compareVersions(a: string, b: string): number {
 function detectPlatform(): string {
   const os = process.platform;
   const arch = process.arch;
-  const osName = os === "darwin" ? "macos" : os === "win32" ? "windows" : "linux";
+  const osName =
+    os === "darwin" ? "macos" : os === "win32" ? "windows" : "linux";
   const archName = arch === "arm64" ? "arm64" : "x64";
   return `${osName}-${archName}`;
 }
 
 async function fetchLatestVersion(): Promise<string | null> {
   try {
-    const res = await fetch("https://api.github.com/repos/wanfranklin/algori/releases/latest");
+    const res = await fetch(
+      "https://api.github.com/repos/wanfranklin/algori/releases/latest",
+    );
     if (!res.ok) return null;
-    const data = await res.json() as { tag_name?: string };
+    const data = (await res.json()) as { tag_name?: string };
     return data.tag_name?.replace(/^v/, "") ?? null;
   } catch {
     return null;
@@ -142,7 +145,10 @@ async function runUpdate() {
   try {
     const { execSync } = await import("child_process");
     if (isWindows) {
-      execSync(`powershell -Command "Invoke-WebRequest -Uri '${url}' -OutFile '${tmpFile}'"`, { stdio: "inherit" });
+      execSync(
+        `powershell -Command "Invoke-WebRequest -Uri '${url}' -OutFile '${tmpFile}'"`,
+        { stdio: "inherit" },
+      );
       execSync(`move /Y "${tmpFile}" "${currentBin}"`, { stdio: "inherit" });
     } else {
       execSync(`curl -fsSL -o "${tmpFile}" "${url}"`, { stdio: "inherit" });
@@ -193,13 +199,17 @@ async function runFile(filePath: string, options: RunOptions = {}) {
   }
 
   if (!isValidAlgoriFile(filePath)) {
-    console.error(`Erro: Arquivo deve ter extensão ${VALID_EXTENSIONS.join(" ou ")}`);
+    console.error(
+      `Erro: Arquivo deve ter extensão ${VALID_EXTENSIONS.join(" ou ")}`,
+    );
     process.exit(1);
   }
 
   const stat = fs.statSync(filePath);
   if (stat.size > MAX_FILE_SIZE) {
-    console.error(`Erro: Arquivo muito grande (${Math.round(stat.size / 1024)}KB). Limite: 1MB.`);
+    console.error(
+      `Erro: Arquivo muito grande (${Math.round(stat.size / 1024)}KB). Limite: 1MB.`,
+    );
     process.exit(1);
   }
 
@@ -227,7 +237,9 @@ async function runFile(filePath: string, options: RunOptions = {}) {
     interpreter.run(ast, code);
   } catch (err) {
     if (err instanceof InputRequestError) {
-      const resumeIndex = ast.findIndex((n) => n.line === interpreter.currentLine) + 1;
+      const resumeIndex = ast.findIndex(
+        (n) => n.line === interpreter.currentLine,
+      );
       await handleInput(interpreter, ast, err, resumeIndex);
     } else {
       console.error(formatError(err as Error));
@@ -242,7 +254,7 @@ async function handleInput(
   interpreter: Interpreter,
   ast: ReturnType<typeof parse>,
   err: InputRequestError,
-  resumeIndex: number = 0
+  resumeIndex: number = 0,
 ) {
   printOutput(interpreter);
 
@@ -262,21 +274,20 @@ async function handleInput(
     });
     // Mark input as resolved and store the value for capturar() to return
     interpreter.inputResolved = true;
-    interpreter.lastInputValue = parts[0] ? (isNaN(Number(parts[0])) ? parts[0] : Number(parts[0])) : null;
-  } else if (input) {
-    interpreter.console.push({
-      id: Date.now(),
-      text: input,
-      type: "input" as const,
-      timestamp: new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", second: "2-digit", hour12: true }),
-    });
+    interpreter.lastInputValue = parts[0]
+      ? isNaN(Number(parts[0]))
+        ? parts[0]
+        : Number(parts[0])
+      : null;
   }
 
   try {
     interpreter.execBlockFrom(ast, resumeIndex);
   } catch (e) {
     if (e instanceof InputRequestError) {
-      const nextIndex = ast.findIndex((n) => n.line === interpreter.currentLine) + 1;
+      const nextIndex = ast.findIndex(
+        (n) => n.line === interpreter.currentLine,
+      );
       await handleInput(interpreter, ast, e, nextIndex);
     } else {
       throw e;
@@ -315,7 +326,10 @@ function formatError(err: Error): string {
 
 // ── CLI ──────────────────────────────────────────────────────────────────────
 
-function extractRunOptions(args: string[]): { file: string | null; options: RunOptions } {
+function extractRunOptions(args: string[]): {
+  file: string | null;
+  options: RunOptions;
+} {
   let file: string | null = null;
   const options: RunOptions = {};
 
@@ -357,20 +371,20 @@ function extractRunOptions(args: string[]): { file: string | null; options: RunO
 
 const args = process.argv.slice(2);
 const subcommands: Record<string, string> = {
-  "executar": "executar",
-  "exec": "executar",
-  "rodar": "executar",
-  "run": "executar",
-  "novo": "novo",
+  executar: "executar",
+  exec: "executar",
+  rodar: "executar",
+  run: "executar",
+  novo: "novo",
   "new": "novo",
-  "criar": "novo",
-  "create": "novo",
-  "ajuda": "ajuda",
-  "help": "ajuda",
-  "versao": "versao",
-  "version": "versao",
-  "atualizar": "atualizar",
-  "update": "atualizar",
+  criar: "novo",
+  create: "novo",
+  ajuda: "ajuda",
+  help: "ajuda",
+  versao: "versao",
+  version: "versao",
+  atualizar: "atualizar",
+  update: "atualizar",
 };
 
 // Sem argumentos: mostrar ajuda
@@ -403,7 +417,9 @@ if (mapped) {
       const { file, options } = extractRunOptions(args.slice(1));
       if (!file) {
         console.error("Erro: Informe o arquivo para executar.");
-        console.error("Uso: algori executar <arquivo> [--debug] [--timeout <ms>]");
+        console.error(
+          "Uso: algori executar <arquivo> [--debug] [--timeout <ms>]",
+        );
         process.exit(1);
       }
       await runFile(resolveFilePath(file), options);
