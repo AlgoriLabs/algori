@@ -237,9 +237,7 @@ async function runFile(filePath: string, options: RunOptions = {}) {
     interpreter.run(ast, code);
   } catch (err) {
     if (err instanceof InputRequestError) {
-      const resumeIndex = ast.findIndex(
-        (n) => n.line === interpreter.currentLine,
-      );
+      const resumeIndex = interpreter.currentExecIndex;
       await handleInput(interpreter, ast, err, resumeIndex);
     } else {
       console.error(formatError(err as Error));
@@ -266,28 +264,36 @@ async function handleInput(
       if (varName) {
         const raw = parts[i] ?? "";
         let parsed: unknown = raw;
+
         if (raw === "verdadeiro" || raw === "true") parsed = true;
         else if (raw === "falso" || raw === "false") parsed = false;
         else if (!isNaN(Number(raw)) && raw !== "") parsed = Number(raw);
+
         interpreter.variables.set(varName, parsed);
       }
     });
-    // Mark input as resolved and store the value for capturar() to return
-    interpreter.inputResolved = true;
-    interpreter.lastInputValue = parts[0]
-      ? isNaN(Number(parts[0]))
-        ? parts[0]
-        : Number(parts[0])
-      : null;
   }
+
+  const rawValue = parts[0] ?? "";
+
+  let parsedValue: unknown = rawValue;
+
+  if (rawValue === "verdadeiro" || rawValue === "true") {
+    parsedValue = true;
+  } else if (rawValue === "falso" || rawValue === "false") {
+    parsedValue = false;
+  } else if (rawValue !== "" && !isNaN(Number(rawValue))) {
+    parsedValue = Number(rawValue);
+  }
+
+  interpreter.inputResolved = true;
+  interpreter.lastInputValue = parsedValue;
 
   try {
     interpreter.execBlockFrom(ast, resumeIndex);
   } catch (e) {
     if (e instanceof InputRequestError) {
-      const nextIndex = ast.findIndex(
-        (n) => n.line === interpreter.currentLine,
-      );
+      const nextIndex = interpreter.currentExecIndex;
       await handleInput(interpreter, ast, e, nextIndex);
     } else {
       throw e;

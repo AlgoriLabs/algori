@@ -706,6 +706,10 @@ export class Interpreter {
           const value = this.lastInputValue;
           this.lastInputValue = null;
 
+          console.error("DEBUG capturar resolvido:", {
+            currentExecIndex: this.currentExecIndex,
+            lastInputValue: this.lastInputValue,
+          });
           return value;
         }
 
