@@ -7,7 +7,7 @@ import { ParseError, RuntimeError } from "./errors.js";
 import * as fs from "fs";
 import * as path from "path";
 
-const VERSION = "1.1.2";
+const VERSION = "1.1.3";
 const MAX_FILE_SIZE = 1024 * 1024; // 1MB
 const VALID_EXTENSIONS = [".algori", ".algx"];
 
