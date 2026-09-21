@@ -478,9 +478,21 @@ export class Interpreter {
 
   private callBuiltin(name: string, args: unknown[], line: number): unknown {
     switch (name) {
-      case "raiz": return Math.sqrt(args[0] as number);
+      case "raiz": {
+        const num = args[0] as number;
+        if (num < 0) {
+          throw new RuntimeError(line, "Raiz quadrada de número negativo", 'Use um número positivo ou zero.', 'raiz(9)', this.makeContext());
+        }
+        return Math.sqrt(num);
+      }
       case "potencia": return Math.pow(args[0] as number, args[1] as number);
-      case "modulo": return (args[0] as number) % (args[1] as number);
+      case "modulo": {
+        const divisor = args[1] as number;
+        if (divisor === 0) {
+          throw new RuntimeError(line, "Divisão por zero", 'Use um divisor diferente de zero.', 'modulo(10, 3)', this.makeContext());
+        }
+        return (args[0] as number) % divisor;
+      }
       case "abs": return Math.abs(args[0] as number);
       case "arredondar": return Math.round(args[0] as number);
       case "tamanho": {
@@ -624,7 +636,7 @@ export class Interpreter {
   }
 
   private evalUserFunction(func: UserFunction, args: ExprNode[], line: number): unknown {
-    if (this.callStack.length > 50) {
+    if (this.callStack.length >= this.maxCallStackDepth) {
       throw new RuntimeError(line, 'Pilha de chamadas muito profunda (recursão infinita?)', 'Verifique se há uma condição de parada na recursão.', undefined, this.makeContext());
     }
 

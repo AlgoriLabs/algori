@@ -1028,8 +1028,7 @@ class Parser {
         (this.peek().value === "mod" || this.peek().value === "div"))
     ) {
       const op = this.advance();
-      const mappedOp =
-        op.value === "mod" ? "%" : op.value === "div" ? "/" : op.value;
+      const mappedOp = op.value === "mod" ? "%" : op.value;
       const right = this.parseUnary();
       left = { kind: "binop", op: mappedOp, left, right, line: op.line };
     }

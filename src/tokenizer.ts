@@ -229,7 +229,19 @@ export function tokenize(source: string): Token[] {
 
     if (ch >= "0" && ch <= "9") {
       let num = "";
-      while (pos < source.length && ((peek() >= "0" && peek() <= "9") || peek() === ".")) {
+      let hasDot = false;
+      while (pos < source.length && ((peek() >= "0" && peek() <= "9") || (peek() === "." && !hasDot))) {
+        if (peek() === ".") hasDot = true;
+        num += advance();
+      }
+      addToken("NUMBER", num, startLine, startCol);
+      continue;
+    }
+
+    if (ch === "." && (peek2() >= "0" && peek2() <= "9")) {
+      let num = "0.";
+      advance(); // consume the dot
+      while (pos < source.length && peek() >= "0" && peek() <= "9") {
         num += advance();
       }
       addToken("NUMBER", num, startLine, startCol);

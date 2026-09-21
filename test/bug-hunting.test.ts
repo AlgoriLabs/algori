@@ -89,7 +89,9 @@ describe("Bug Hunting - Confirmed Bugs", () => {
     it("1.2.3 should NOT be a single number token", () => {
       const tokens = tokenize('programa { mostrar(1.2.3) }');
       const numberTokens = tokens.filter(t => t.type === "NUMBER");
-      expect(numberTokens[0].value).not.toBe("1.2.3");
+      expect(numberTokens.length).toBe(2);
+      expect(numberTokens[0].value).toBe("1.2");
+      expect(numberTokens[1].value).toBe("0.3");
     });
 
     it("valid decimal numbers still work", () => {
@@ -154,7 +156,7 @@ describe("Bug Hunting - Confirmed Bugs", () => {
       expect(interp).toBeDefined();
     });
 
-    it("expression-level recursion hits limit at 50 (should be 100)", () => {
+    it("expression-level recursion now uses same limit as statement-level", () => {
       const code = `
         programa {
           funcao inteiro f(inteiro n) {
@@ -167,10 +169,10 @@ describe("Bug Hunting - Confirmed Bugs", () => {
           mostrar(f(99))
         }
       `;
-      // f(99) is called from expression context (mostrar(f(99)))
-      // evalUserFunction uses hardcoded limit of 50
-      // This fails at 50, not 100
-      expectRuntimeError(code, "Pilha de chamadas muito profunda");
+      // After fix: evalUserFunction now uses maxCallStackDepth (100) instead of hardcoded 50
+      // f(99) should complete successfully
+      const interp = runCode(code);
+      expect(interp.console[0].text).toBe("99");
     });
   });
 
@@ -184,16 +186,12 @@ describe("Bug Hunting - Confirmed Bugs", () => {
     //
     // FIX: Add input validation to modulo, raiz, and potencia.
 
-    it("modulo(10, 0) returns NaN instead of throwing error", () => {
-      const interp = runCode('programa { mostrar(modulo(10, 0)) }');
-      // Bug: returns "NaN" instead of throwing an error
-      expect(interp.console[0].text).toBe("NaN");
+    it("modulo(10, 0) now throws division by zero error", () => {
+      expectRuntimeError('programa { mostrar(modulo(10, 0)) }', "Divisão por zero");
     });
 
-    it("raiz(-1) returns NaN instead of throwing error", () => {
-      const interp = runCode('programa { mostrar(raiz(-1)) }');
-      // Bug: returns "NaN" instead of throwing an error
-      expect(interp.console[0].text).toBe("NaN");
+    it("raiz(-1) now throws error for negative number", () => {
+      expectRuntimeError('programa { mostrar(raiz(-1)) }', "negativo");
     });
 
     it("potencia with negative exponent returns decimal", () => {
