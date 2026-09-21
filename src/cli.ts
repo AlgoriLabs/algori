@@ -203,6 +203,7 @@ async function runFile(filePath: string, options: RunOptions = {}) {
     process.exit(1);
   }
 
+  printedCount = 0;
   const code = fs.readFileSync(filePath, "utf-8");
 
   const tokens = tokenize(code);
@@ -284,12 +285,16 @@ async function handleInput(
   }
 }
 
+let printedCount = 0;
+
 function printOutput(interpreter: Interpreter) {
-  for (const line of interpreter.console) {
+  for (let i = printedCount; i < interpreter.console.length; i++) {
+    const line = interpreter.console[i];
     if (line.type === "output" || line.type === "input") {
       process.stdout.write(line.text + "\n");
     }
   }
+  printedCount = interpreter.console.length;
 }
 
 function formatError(err: Error): string {
