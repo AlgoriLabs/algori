@@ -1,6 +1,6 @@
 {
   "name": "algori-core",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "type": "module",
   "description": "Core da linguagem de programação Algori — tokenizer, parser e interpretador para código em português",
   "license": "GPL-3.0-or-later",
